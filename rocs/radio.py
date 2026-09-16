@@ -2,60 +2,55 @@ import socket
 import serial
 
 
-class Radio:
-    def __init__(
-        self,
-        port="/dev/serial0",
-        baudrate=9600,
-        simulate=False,
-        host="127.0.0.1",
-        udp_port=5005
-    ):
-        self.port = port
-        self.baudrate = baudrate
-        self.simulate = simulate
+class SimulatedRadio:
+    """Radio used during development without physical LoRa hardware."""
+
+    def __init__(self, host="127.0.0.1", port=5005):
         self.host = host
-        self.udp_port = udp_port
-
-        self.serial_connection = None
-        self.socket = None
-
-        if self.simulate:
-            self.socket = socket.socket(
-                socket.AF_INET,
-                socket.SOCK_DGRAM
-            )
-        else:
-            self.serial_connection = serial.Serial(
-                port=self.port,
-                baudrate=self.baudrate,
-                timeout=1
-            )
+        self.port = port
+        self.socket = socket.socket(
+            socket.AF_INET,
+            socket.SOCK_DGRAM
+        )
 
     def send(self, message):
-        if self.simulate:
-            self.socket.sendto(
-                message.encode("utf-8"),
-                (self.host, self.udp_port)
-            )
+        self.socket.sendto(
+            message.encode("utf-8"),
+            (self.host, self.port)
+        )
 
-            print(f"[SIMULATED RADIO] TX -> {message}")
-            return
+        print(f"[SIMULATED RADIO] TX -> {message}")
 
+    def receive(self):
+        self.socket.bind(
+            (self.host, self.port)
+        )
+
+        data, address = self.socket.recvfrom(1024)
+
+        return data.decode("utf-8")
+
+    def close(self):
+        self.socket.close()
+
+
+class LoRaRadio:
+    """Radio used on the real Raspberry Pi with the LoRa HAT."""
+
+    def __init__(self, port="/dev/serial0", baudrate=9600):
+        self.serial_connection = serial.Serial(
+            port=port,
+            baudrate=baudrate,
+            timeout=1
+        )
+
+    def send(self, message):
         data = (message + "\n").encode("utf-8")
         self.serial_connection.write(data)
 
     def receive(self):
-        if self.simulate:
-            self.socket.bind(
-                (self.host, self.udp_port)
-            )
-
-            data, address = self.socket.recvfrom(1024)
-
-            return data.decode("utf-8")
-
         if self.serial_connection.in_waiting > 0:
+
             data = self.serial_connection.readline()
 
             return data.decode("utf-8").strip()
@@ -63,8 +58,4 @@ class Radio:
         return None
 
     def close(self):
-        if self.serial_connection:
-            self.serial_connection.close()
-
-        if self.socket:
-            self.socket.close()
+        self.serial_connection.close()

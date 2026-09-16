@@ -1,8 +1,7 @@
 from rocs.packet import parse_packet
-from rocs.radio import Radio
+from rocs.radio import SimulatedRadio
 
-
-radio = Radio(simulate=True)
+radio = SimulatedRadio()
 
 print("ROCS Pi 4 receiver ready...")
 print("Waiting for transmission...\n")

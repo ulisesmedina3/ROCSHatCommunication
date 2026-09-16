@@ -1,8 +1,8 @@
 from rocs.packet import create_packet
-from rocs.radio import Radio
+from rocs.radio import SimulatedRadio
 
 
-radio = Radio(simulate=True)
+radio = SimulatedRadio()
 
 packet = create_packet(
     source="ZERO",
