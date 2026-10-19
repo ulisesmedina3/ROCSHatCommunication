@@ -1,12 +1,15 @@
 import threading
+import os
 
 from rocs.packet import create_packet, parse_packet
-from rocs.radio import SimulatedRadio
+from rocs.radio import SimulatedRadio, LoRaRadio
 
 
 radio = SimulatedRadio(
-    local_port=5005,
-    remote_port=5006
+    if os.getenv("ROCS_RADIO", "sim") == "lora":
+        radio = LoRaRadio(port="/dev/ttyUSB0", baudrate=9600)
+    else:
+        radio = SimulatedRadio(local_port=5005, remote_port=5006)
 )
 
 sequence = 1
@@ -15,6 +18,8 @@ sequence = 1
 def receive_messages():
     while True:
         message = radio.receive()
+        if message is None:
+            continue
 
         try:
             packet = parse_packet(message)

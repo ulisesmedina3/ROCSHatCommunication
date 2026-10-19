@@ -34,25 +34,26 @@ class SimulatedRadio:
         self.socket.close()
 
 class LoRaRadio:
-    """Radio used on the real Raspberry Pi with the LoRa HAT."""
+    """Communicate with the Waveshare SX1262 UART LoRa HAT."""
 
-    def __init__(self, port="/dev/serial0", baudrate=9600):
+    def __init__(self, port="/dev/ttyUSB0", baudrate=9600):
         self.serial_connection = serial.Serial(
             port=port,
             baudrate=baudrate,
-            timeout=1
+            timeout=0.2
         )
 
     def send(self, message):
         data = (message + "\n").encode("utf-8")
         self.serial_connection.write(data)
+        self.serial_connection.flush()
+        print(f"[LORA TX] {message}")
 
     def receive(self):
-        if self.serial_connection.in_waiting > 0:
+        data = self.serial_connection.readline()
 
-            data = self.serial_connection.readline()
-
-            return data.decode("utf-8").strip()
+        if data:
+            return data.decode("utf-8", errors="replace").strip()
 
         return None
 
