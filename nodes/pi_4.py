@@ -16,8 +16,8 @@ def receive_messages():
     while True:
         message = radio.receive()
 
-            if message is None:
-                continue
+        if message is None:
+             continue
         
         try:
             packet = parse_packet(message)
