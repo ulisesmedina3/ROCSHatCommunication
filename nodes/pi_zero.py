@@ -5,12 +5,11 @@ from rocs.packet import create_packet, parse_packet
 from rocs.radio import SimulatedRadio, LoRaRadio
 
 
-radio = SimulatedRadio(
-    if os.getenv("ROCS_RADIO", "sim") == "lora":
-        radio = LoRaRadio(port="/dev/ttyUSB0", baudrate=9600)
-    else:
-        radio = SimulatedRadio(local_port=5005, remote_port=5006)
-)
+
+if os.getenv("ROCS_RADIO", "sim") == "lora":
+    radio = LoRaRadio(port="/dev/ttyUSB0", baudrate=9600)
+else:
+    radio = SimulatedRadio(local_port=5005, remote_port=5006)
 
 sequence = 1
 
